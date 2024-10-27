@@ -1,7 +1,7 @@
 import axios from "axios";
 import { Photo } from "../interfaces/Photo";
 
-const ACCESS_KEY = "dLDSdT6FZv51R4PUW4zWHerygUmJiuWTAKzBWTogV-k";
+const ACCESS_KEY = import.meta.env.VITE_UNSPLASH_ACCESS_KEY as string;
 
 const unsplashAPI = axios.create({
 	baseURL: "https://api.unsplash.com",
