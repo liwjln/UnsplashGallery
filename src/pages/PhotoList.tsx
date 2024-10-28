@@ -9,17 +9,29 @@ const PhotoList: React.FC = () => {
 	const [photos, setPhotos] = useState<Photo[]>([]);
 	const [page, setPage] = useState<number>(1);
 	const [loading, setLoading] = useState<boolean>(true);
+	const [error, setError] = useState<string | null>(null);
 	const loadedCount = useRef<number>(0);
 	const prevPagePhotos = useRef<Photo[]>([]);
 
 	useEffect(() => {
 		const loadPhotos = async () => {
 			setLoading(true);
-			const response = await fetchPhotos(page);
-			const newPhotos = response.data.filter((photo) => !prevPagePhotos.current.find((prevPhoto) => prevPhoto.id === photo.id));
-			setPhotos((prevPhotos) => [...prevPhotos, ...newPhotos]);
-			prevPagePhotos.current = newPhotos;
-			loadedCount.current = 0;
+			setError(null);
+			try {
+				const response = await fetchPhotos(page);
+				const newPhotos = response.data.filter((photo) => !prevPagePhotos.current.find((prevPhoto) => prevPhoto.id === photo.id));
+				setPhotos((prevPhotos) => [...prevPhotos, ...newPhotos]);
+				prevPagePhotos.current = newPhotos;
+				loadedCount.current = 0;
+			} catch (error) {
+				if (error instanceof Error) {
+					setError(`Failed to load photos: ${error.message}`);
+				} else {
+					setError("Failed to load photos: An unknown error occurred");
+				}
+			} finally {
+				setLoading(false);
+			}
 		};
 		loadPhotos();
 	}, [page]);
@@ -62,6 +74,7 @@ const PhotoList: React.FC = () => {
 						<LoadingSpinner />
 					</div>
 				)}
+				{error && <div className="text-center text-red-500">{error}</div>}
 			</div>
 		</div>
 	);
@@ -69,7 +82,6 @@ const PhotoList: React.FC = () => {
 
 const PhotoItem: React.FC<{ photo: Photo; onLoad: () => void }> = ({ photo, onLoad }) => {
 	const [isLoaded, setIsLoaded] = useState(false);
-
 	const handleImageLoad = () => {
 		setIsLoaded(true);
 		onLoad();
